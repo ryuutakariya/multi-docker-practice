@@ -1,0 +1,21 @@
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t krin325/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true krin325/react-test npm test
+
+after_success:
+    - docker build -t krin325/multi-client ./client
+    - docker build -t krin325/multi-nginx ./nginx
+    - docker build -t krin325/multi-server ./server
+    - docker build -t krin325/multi-worker ./worker
+    # Login to the docker CLI
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    - docker push krin325/multi-client
+    - docker push krin325/multi-nginx
+    - docker push krin325/multi-server
+    - docker push krin325/multi-worker
